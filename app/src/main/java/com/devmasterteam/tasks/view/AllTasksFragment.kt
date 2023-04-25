@@ -38,15 +38,15 @@ class AllTasksFragment : Fragment() {
             }
 
             override fun onDeleteClick(id: Int) {
-               viewModel.delete(id)
+                viewModel.delete(id)
             }
 
             override fun onCompleteClick(id: Int) {
-                TODO("Not yet implemented")
+                viewModel.status(id, true)
             }
 
             override fun onUndoClick(id: Int) {
-                TODO("Not yet implemented")
+                viewModel.status(id, false)
             }
         }
 
@@ -74,6 +74,12 @@ class AllTasksFragment : Fragment() {
         }
 
         viewModel.delete.observe(viewLifecycleOwner) {
+            if (!it.status()) {
+                Toast.makeText(context, it.message(), Toast.LENGTH_LONG).show()
+            }
+        }
+
+        viewModel.status.observe(viewLifecycleOwner) {
             if (!it.status()) {
                 Toast.makeText(context, it.message(), Toast.LENGTH_LONG).show()
             }
