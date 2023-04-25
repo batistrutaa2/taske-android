@@ -10,51 +10,29 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class TaskRepository(val context: Context) : BaseRepository() {
+class TaskRepository(context: Context) : BaseRepository(context) {
 
     private val remote = RetrofitClient.getService(TaskService::class.java)
 
-    private fun list(call: Call<List<TaskModel>>, listener: APIListener<List<TaskModel>>) {
-        call.enqueue(object : Callback<List<TaskModel>>{
-            override fun onResponse(call: Call<List<TaskModel>>, response: Response<List<TaskModel>>) {
-                handleResponse(response, listener)
-            }
-
-            override fun onFailure(call: Call<List<TaskModel>>, t: Throwable) {
-                listener.onfailure(context.getString(R.string.ERROR_UNEXPECTED))
-            }
-        })
-    }
-
     fun getList(listener: APIListener<List<TaskModel>>) {
-        val call = remote.list()
-        list(call, listener)
+        executeCall(remote.list(), listener)
     }
 
     fun listNext(listener: APIListener<List<TaskModel>>) {
-        val call = remote.listNext()
-        list(call, listener)
+        executeCall(remote.listNext(), listener)
     }
 
     fun listOverdue(listener: APIListener<List<TaskModel>>) {
-        val call = remote.listOverdue()
-        list(call, listener)
+        executeCall(remote.listOverdue(), listener)
     }
-
-
 
     fun create(task: TaskModel, listener: APIListener<Boolean>) {
         val call = remote.create(task.priorityId, task.description, task.dueDate, task.complete)
+        executeCall(call, listener)
+    }
 
-        call.enqueue(object : Callback<Boolean> {
-            override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {
-                handleResponse(response, listener)
-            }
-
-            override fun onFailure(call: Call<Boolean>, t: Throwable) {
-
-            }
-        })
+    fun delete(id: Int, listener: APIListener<Boolean>) {
+        executeCall(remote.delete(id), listener)
     }
 
 }

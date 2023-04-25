@@ -13,26 +13,38 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class PriorityRepository(val context: Context) : BaseRepository() {
+class PriorityRepository(context: Context) : BaseRepository(context) {
 
     private val remote = RetrofitClient.getService(PriorityService::class.java)
     private val dataBase = TaskDatabase.getDatabase(context).priorityDAO()
 
+    // esse companion retira a reponsabilidade da recicle view consulta o banco toda hora
+    // nele e criado um cash onde os dados ficam salvos e retorna sempre que o indice existir na classe
+
+    companion object {
+        private val cache = mutableMapOf<Int, String>()
+        fun getDescription(id: Int): String {
+            return cache[id] ?: ""
+        }
+
+        fun setDescription(id: Int, str: String) {
+            cache[id] = str
+        }
+    }
+
+    fun getDescription(id: Int): String {
+        return if (PriorityRepository.getDescription(id) == "") {
+            val description = dataBase.getDescription(id)
+            setDescription(id, description)
+            description
+        } else {
+            PriorityRepository.getDescription(id)
+        }
+    }
+
+
     fun list(listener: APIListener<List<PriorityModel>>) {
-        val call = remote.list()
-        call.enqueue(object : Callback<List<PriorityModel>> {
-            override fun onResponse(
-                call: Call<List<PriorityModel>>,
-                response: Response<List<PriorityModel>>
-            ) {
-                handleResponse(response, listener)
-            }
-
-            override fun onFailure(call: Call<List<PriorityModel>>, t: Throwable) {
-                listener.onfailure(context.getString(R.string.ERROR_UNEXPECTED))
-            }
-
-        })
+        executeCall(remote.list(), listener)
     }
 
     fun list(): List<PriorityModel> {
